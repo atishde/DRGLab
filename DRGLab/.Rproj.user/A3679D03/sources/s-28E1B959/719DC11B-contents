@@ -1,0 +1,55 @@
+DRGdata <- read.csv("DRG_data.csv")
+##library(ggplot2) ##load in required packages
+##library(dplyr)
+
+
+#create boxplot function#
+DRG_boxplot <- function(fun.data, fun.y) { ##create function with arguments for dataset and y
+  fun.data$fun.y <- fun.data[, fun.y] ##define y variable within function (needed for setting y variable below)
+  fun.data %>%
+    mutate(DRG_num = factor(substr(DRGdata$DRG.Definition, 0,3))) %>% ##create new column of DRG code number as a factor
+  ggplot(aes(DRG_num, fun.y)) + ##create ggplot environment with DRG code number and y variable
+    geom_boxplot() + ##create boxplot
+    scale_y_continuous(fun.y) + ##set y label to the specified y variable argument
+    labs(x = "DRG code") + ##change x axis label to character string
+    theme(axis.text.x = element_text(angle=90)) ##move x axis ticks 90 degrees for visibility
+}
+
+
+#create statistics function#
+DRG_stat <- function(df, stat){ ##create function with arguments for dataframe and a statistic
+  stat_table <- function(df, stat){ ## create first function of making the specified dataframe
+    if(stat=="mean"){ ##if function for if stat argument is set to mean (copied below for median and sd)
+      df %>%
+        mutate(DRG_num = factor(substr(DRGdata$DRG.Definition, 0,3))) %>% ##mutate the dataframe to add a new column for just the DRG code number as a factor
+        group_by(DRG_num) %>% ##group dataset by DRG code number
+        summarize_at(vars(Average.Covered.Charges:Average.Medicare.Payments),mean) ##summarize means of payment variables by DRG code number
+    }
+    else if (stat=="median"){
+      df %>%
+        mutate(DRG_num = factor(substr(DRGdata$DRG.Definition, 0,3))) %>%
+        group_by(DRG_num) %>%
+        summarize_at(vars(Average.Covered.Charges:Average.Medicare.Payments),median) ##summarize medians of payment variables by DRG code number
+    }
+    else if (stat=="sd"){
+      df %>%
+        mutate(DRG_num = factor(substr(DRGdata$DRG.Definition, 0,3))) %>%
+        group_by(DRG_num) %>%
+        summarize_at(vars(Average.Covered.Charges:Average.Medicare.Payments),sd) ##summarize sd's of payment variables by DRG code number
+    } else
+      stop(sQuote(x), " not implemented") ##create message for if different argument is entered for stat
+  }
+ knitr::kable(head(stat_table(df, stat)), "html")   ##create table with HTML output of the specified stat dataframe
+
+
+}
+
+setwd("C:\\Users\\atish\\OneDrive\\Documents\\Data Science\\Lab 2\\DRGLab")
+document()
+setwd('..')
+install("DRGLab")
+
+save(DRGdata, file = "DRGLab/Data/DRGData.RData")
+?DRG_boxplot
+
+
